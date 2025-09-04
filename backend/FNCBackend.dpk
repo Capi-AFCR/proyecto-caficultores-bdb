@@ -30,9 +30,18 @@ package FNCBackend;
 
 requires
   rtl,
-  emsserverapi;
+  emsserverapi,
+  dbrtl,
+  FireDAC,
+  FireDACCommonDriver,
+  FireDACCommon,
+  FireDACOracleDriver;
 
 contains
-  Caficultores in 'Caficultores.pas';
+  Caficultores in 'Caficultores.pas',
+  Abonos in 'Abonos.pas',
+  Saldos in 'Saldos.pas';
 
 end.
+
+

@@ -1,0 +1,185 @@
+/* Estilos globales */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
+
+body {
+  font-family: 'Open Sans', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #e6eef7;
+  color: #2d3748;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+h1, h2, h3 {
+  color: #1e3a8a;
+  margin-bottom: 15px;
+  font-weight: 700;
+}
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: linear-gradient(145deg, #ffffff, #f9fafc);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+th, td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+th {
+  background: linear-gradient(90deg, #1e3a8a, #2b6cb0);
+  color: #ffffff;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+tr:nth-child(even) {
+  background-color: #f7fafc;
+}
+
+tr:hover {
+  background-color: #edf2f7;
+}
+
+button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  margin: 2px 0;
+}
+
+button.primary {
+  background: linear-gradient(90deg, #1e3a8a, #2b6cb0);
+  color: #ffffff;
+}
+
+button.primary:hover {
+  background: linear-gradient(90deg, #1a2d70, #2a5da8);
+  transform: translateY(-1px);
+}
+
+button.secondary {
+  background-color: #4a5568;
+  color: #ffffff;
+}
+
+button.secondary:hover {
+  background-color: #2d3748;
+  transform: translateY(-1px);
+}
+
+button.danger {
+  background: linear-gradient(90deg, #c53030, #e53e3e);
+  color: #ffffff;
+}
+
+button.danger:hover {
+  background: linear-gradient(90deg, #9b2c2c, #d13a3a);
+  transform: translateY(-1px);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 20px;
+  background: linear-gradient(145deg, #ffffff, #f9fafc);
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  max-width: 450px;
+  margin: 0 auto;
+}
+
+input, select {
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #2b6cb0;
+  box-shadow: 0 0 5px rgba(43, 108, 176, 0.2);
+}
+
+.error {
+  color: #e53e3e;
+  margin-top: 10px;
+  font-weight: 600;
+}
+
+.success {
+  color: #38a169;
+  margin-top: 10px;
+  font-weight: 600;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+
+  table {
+    border-radius: 0;
+  }
+
+  th, td {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  tr {
+    margin-bottom: 10px;
+    border-radius: 6px;
+  }
+
+  td {
+    padding-left: 45%;
+  }
+
+  td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 10px;
+    font-weight: 600;
+    color: #4a5568;
+  }
+
+  td[data-label="Acciones"] {
+    padding-left: 10px;
+    text-align: center;
+  }
+
+  button {
+    width: 100%;
+    margin: 5px 0;
+  }
+
+  form {
+    padding: 15px;
+    max-width: 100%;
+  }
+
+  input, select {
+    font-size: 14px;
+  }
+}

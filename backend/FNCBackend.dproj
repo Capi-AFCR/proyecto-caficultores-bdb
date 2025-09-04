@@ -112,7 +112,14 @@
         </DelphiCompile>
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="emsserverapi.dcp"/>
+        <DCCReference Include="dbrtl.dcp"/>
+        <DCCReference Include="FireDAC.dcp"/>
+        <DCCReference Include="FireDACCommonDriver.dcp"/>
+        <DCCReference Include="FireDACCommon.dcp"/>
+        <DCCReference Include="FireDACOracleDriver.dcp"/>
         <DCCReference Include="Caficultores.pas"/>
+        <DCCReference Include="Abonos.pas"/>
+        <DCCReference Include="Saldos.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

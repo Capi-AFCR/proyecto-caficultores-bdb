@@ -29,12 +29,45 @@ CREATE TABLE abonos (
 );
 
 -- Trigger para actualizar saldo del monedero al registrar abono
-CREATE OR REPLACE TRIGGER trg_actualizar_saldo
+CREATE OR REPLACE TRIGGER trg_actualizar_saldo_ai
 AFTER INSERT ON abonos
 FOR EACH ROW
 BEGIN
   UPDATE productos
   SET saldo = saldo + :NEW.monto
+  WHERE id_producto = :NEW.id_producto;
+END;
+/
+
+-- Trigger para actualizar saldo del monedero al actualizar abono
+CREATE OR REPLACE TRIGGER trg_actualizar_saldo_bu
+BEFORE UPDATE ON abonos
+FOR EACH ROW
+BEGIN
+  UPDATE productos
+  SET saldo = saldo - :NEW.monto
+  WHERE id_producto = :NEW.id_producto;
+END;
+/
+
+-- Trigger para actualizar saldo del monedero al actualizar abono
+CREATE OR REPLACE TRIGGER trg_actualizar_saldo_au
+AFTER UPDATE ON abonos
+FOR EACH ROW
+BEGIN
+  UPDATE productos
+  SET saldo = saldo + :NEW.monto
+  WHERE id_producto = :NEW.id_producto;
+END;
+/
+
+-- Trigger para actualizar saldo del monedero al eliminar abono
+CREATE OR REPLACE TRIGGER trg_actualizar_saldo_ad
+BEFORE DELETE ON abonos
+FOR EACH ROW
+BEGIN
+  UPDATE productos
+  SET saldo = saldo - :NEW.monto
   WHERE id_producto = :NEW.id_producto;
 END;
 /
@@ -91,5 +124,42 @@ BEGIN
     SELECT tipo_producto, numero_producto, saldo
     FROM productos
     WHERE id_caficultor = p_id_caficultor;
+END;
+/
+
+-- Procedimiento almacenado para consultar detalle de caficultor
+CREATE OR REPLACE PROCEDURE consultar_detalle_caficultor (
+  p_id_caficultor IN NUMBER,
+  p_nombre OUT VARCHAR2,
+  p_identificacion OUT VARCHAR2,
+  p_ciudad OUT VARCHAR2,
+  p_productos OUT SYS_REFCURSOR
+) AS
+  v_count NUMBER;
+BEGIN
+  -- Obtener datos personales
+  SELECT nombre, identificacion, ciudad
+  INTO p_nombre, p_identificacion, p_ciudad
+  FROM caficultores
+  WHERE id_caficultor = p_id_caficultor;
+
+  -- Verificar si hay productos
+  SELECT COUNT(*)
+  INTO v_count
+  FROM productos
+  WHERE id_caficultor = p_id_caficultor;
+  DBMS_OUTPUT.PUT_LINE('Cantidad de productos para id_caficultor ' || p_id_caficultor || ': ' || v_count);
+
+  -- Cursor para productos
+  OPEN p_productos FOR
+    SELECT id_producto, numero_producto, saldo
+    FROM productos
+    WHERE id_caficultor = p_id_caficultor;
+
+EXCEPTION
+  WHEN NO_DATA_FOUND THEN
+    RAISE_APPLICATION_ERROR(-20003, 'Caficultor no encontrado');
+  WHEN OTHERS THEN
+    RAISE_APPLICATION_ERROR(-20004, 'Error al consultar detalle: ' || SQLERRM);
 END;
 /

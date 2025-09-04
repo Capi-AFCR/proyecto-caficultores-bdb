@@ -51,6 +51,15 @@ type
     [EndPointResponseDetails(404, 'Not Found', TAPIDoc.TPrimitiveType.spNull, TAPIDoc.TPrimitiveFormat.None, '', '')]
     [ResourceSuffix('{item}')]
     procedure DeleteItem(const AContext: TEndpointContext; const ARequest: TEndpointRequest; const AResponse: TEndpointResponse);
+
+    [EndPointRequestSummary('Tests', 'GetDetalleCaficultor', 'Retrieves full caficultor details', 'application/json', '')]
+    [EndPointRequestParameter(TAPIDocParameter.TParameterIn.Path, 'id', 'A caficultor ID', true, TAPIDoc.TPrimitiveType.spString,
+      TAPIDoc.TPrimitiveFormat.None, TAPIDoc.TPrimitiveType.spString, '', '')]
+    [EndPointResponseDetails(200, 'Ok', TAPIDoc.TPrimitiveType.spObject, TAPIDoc.TPrimitiveFormat.None, '', '')]
+    [EndPointResponseDetails(400, 'Bad Request', TAPIDoc.TPrimitiveType.spNull, TAPIDoc.TPrimitiveFormat.None, '', '')]
+    [EndPointResponseDetails(404, 'Not Found', TAPIDoc.TPrimitiveType.spNull, TAPIDoc.TPrimitiveFormat.None, '', '')]
+    [ResourceSuffix('{id}/detalle')]
+    procedure GetDetalleCaficultor(const AContext: TEndpointContext; const ARequest: TEndpointRequest; const AResponse: TEndpointResponse);
   end;
   {$METHODINFO OFF}
 
@@ -301,6 +310,93 @@ begin
       AResponse.Body.SetValue(TJSONObject.Create.AddPair('mensaje', 'Caficultor eliminado'), True);
   finally
     Query.Free;
+  end;
+end;
+
+procedure TCaficultoresResource.GetDetalleCaficultor(const AContext: TEndpointContext; const ARequest: TEndpointRequest; const AResponse: TEndpointResponse);
+var
+  Query: TFDQuery;
+  IdCaficultor: Integer;
+  Nombre, Identificacion, Ciudad: string;
+  JSONObject, ProductoObj: TJSONObject;
+  ProductosArray: TJSONArray;
+  ProdCursor: TDataSet;
+begin
+  try
+    IdCaficultor := StrToIntDef(ARequest.Params.Values['id'], -1);
+    if IdCaficultor <= 0 then
+    begin
+      AResponse.RaiseBadRequest('ID de caficultor inválido');
+      Exit;
+    end;
+
+    Query := TFDQuery.Create(nil);
+    try
+      Query.Connection := TFDConnection.Create(nil);
+      Query.Connection.Params.DriverID := 'Ora';
+      Query.Connection.Params.Database := 'XE';
+      Query.Connection.Params.UserName := 'system';
+      Query.Connection.Params.Password := 'admin';
+
+      Query.SQL.Text := 'BEGIN consultar_detalle_caficultor(:p_id_caficultor, :p_nombre, :p_identificacion, :p_ciudad, :p_productos); END;';
+      Query.Params.ParamByName('p_id_caficultor').DataType := ftInteger;
+      Query.Params.ParamByName('p_id_caficultor').AsInteger := IdCaficultor;
+      Query.Params.ParamByName('p_nombre').DataType := ftString;
+      Query.Params.ParamByName('p_nombre').Size := 100; // Ajustar según la definición de la columna
+      Query.Params.ParamByName('p_nombre').ParamType := ptOutput;
+      Query.Params.ParamByName('p_identificacion').DataType := ftString;
+      Query.Params.ParamByName('p_identificacion').Size := 20;
+      Query.Params.ParamByName('p_identificacion').ParamType := ptOutput;
+      Query.Params.ParamByName('p_ciudad').DataType := ftString;
+      Query.Params.ParamByName('p_ciudad').Size := 50;
+      Query.Params.ParamByName('p_ciudad').ParamType := ptOutput;
+      Query.Params.ParamByName('p_productos').DataType := ftCursor;
+      Query.Params.ParamByName('p_productos').ParamType := ptOutput;
+      Query.ExecSQL;
+
+      Nombre := Query.Params.ParamByName('p_nombre').AsString;
+      Identificacion := Query.Params.ParamByName('p_identificacion').AsString;
+      Ciudad := Query.Params.ParamByName('p_ciudad').AsString;
+
+
+      // Obtener cursores
+      ProdCursor := Query.Params.ParamByName('p_productos').AsDataSet;
+
+      // Construir respuesta JSON
+      JSONObject := TJSONObject.Create;
+      JSONObject.AddPair('id_caficultor', TJSONNumber.Create(IdCaficultor));
+      JSONObject.AddPair('nombre', Nombre);
+      JSONObject.AddPair('identificacion', Identificacion);
+      JSONObject.AddPair('ciudad', Ciudad);
+
+      // Productos
+      ProductosArray := TJSONArray.Create;
+      if (ProdCursor <> nil) then
+      begin
+        ProdCursor.First;
+        while not ProdCursor.Eof do
+        begin
+          ProductoObj := TJSONObject.Create;
+          ProductoObj.AddPair('id_producto', TJSONNumber.Create(ProdCursor.FieldByName('id_producto').AsInteger));
+          ProductoObj.AddPair('numero_producto', ProdCursor.FieldByName('numero_producto').AsString);
+          ProductoObj.AddPair('saldo', TJSONNumber.Create(ProdCursor.FieldByName('saldo').AsFloat));
+          ProductosArray.AddElement(ProductoObj);
+          ProdCursor.Next;
+        end;
+      end;
+      JSONObject.AddPair('productos', ProductosArray);
+
+      AResponse.Body.SetValue(JSONObject, True);
+      AResponse.StatusCode := 200;
+    finally
+      Query.Free;
+    end;
+  except
+    on E: Exception do
+    begin
+      AResponse.RaiseError(500, 'Error al consultar detalle: ',E.Message);
+      Exit;
+    end;
   end;
 end;
 

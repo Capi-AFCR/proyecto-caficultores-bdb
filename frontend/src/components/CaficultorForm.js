@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
-import { postCaficultor } from '../services/api';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { getCaficultores, postCaficultor, putCaficultor } from '../services/api';
 
 const CaficultorForm = () => {
+  const { id: idCaficultor } = useParams();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     nombre: '',
     identificacion: '',
@@ -10,6 +13,27 @@ const CaficultorForm = () => {
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  useEffect(() => {
+    if (idCaficultor) {
+      const fetchCaficultor = async () => {
+        try {
+          const data = await getCaficultores().then((caficultores) => caficultores.find(c => c.id_caficultor === parseInt(idCaficultor)));
+          if (data) {
+            setFormData({
+              nombre: data.nombre || '',
+              identificacion: data.identificacion || '',
+              ciudad: data.ciudad || '',
+              tipo_producto: data.tipo_producto || 'MVI'
+            });
+          }
+        } catch (err) {
+          setError('Error al cargar caficultor: ' + err.message);
+        }
+      };
+      fetchCaficultor();
+    }
+  }, [idCaficultor]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -28,28 +52,32 @@ const CaficultorForm = () => {
       return;
     }
     try {
-      console.log(formData);
-      await postCaficultor(formData);
-      setSuccess('Caficultor registrado con éxito');
+      if (idCaficultor) {
+        await putCaficultor(idCaficultor, formData);
+        setSuccess('Caficultor actualizado con éxito');
+      } else {
+        await postCaficultor(formData);
+        setSuccess('Caficultor registrado con éxito');
+      }
       setFormData({ nombre: '', identificacion: '', ciudad: '', tipo_producto: 'MVI' });
+      setTimeout(() => navigate('/'), 1000);
     } catch (error) {
       setError(error);
     }
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '20px auto', padding: '20px', border: '1px solid #ccc' }}>
-      <h2>Registrar Caficultor</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {success && <p style={{ color: 'green' }}>{success}</p>}
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+    <div className="container">
+      <h2>{idCaficultor ? 'Editar Caficultor' : 'Registrar Caficultor'}</h2>
+      {error && <p className="error">{error}</p>}
+      {success && <p className="success">{success}</p>}
+      <form onSubmit={handleSubmit}>
         <input
           name="nombre"
           value={formData.nombre}
           onChange={handleChange}
           placeholder="Nombre"
           required
-          style={{ padding: '8px' }}
         />
         <input
           name="identificacion"
@@ -57,7 +85,6 @@ const CaficultorForm = () => {
           onChange={handleChange}
           placeholder="Identificación"
           required
-          style={{ padding: '8px' }}
         />
         <input
           name="ciudad"
@@ -65,23 +92,19 @@ const CaficultorForm = () => {
           onChange={handleChange}
           placeholder="Ciudad"
           required
-          style={{ padding: '8px' }}
         />
         <select
           name="tipo_producto"
           value={formData.tipo_producto}
           onChange={handleChange}
           required
-          style={{ padding: '8px' }}
         >
           <option value="CAA">Cuenta Ahorro (CAA)</option>
           <option value="TAD">Tarjeta Débito (TAD)</option>
           <option value="SGP">Gestión Productiva (SGP)</option>
           <option value="MVI">Monedero Virtual (MVI)</option>
         </select>
-        <button type="submit" style={{ padding: '10px', background: '#007bff', color: 'white', border: 'none' }}>
-          Registrar
-        </button>
+        <button type="submit" className="primary">{idCaficultor ? 'Actualizar' : 'Registrar'}</button>
       </form>
     </div>
   );

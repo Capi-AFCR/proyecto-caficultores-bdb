@@ -1,69 +1,72 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { useReactTable, getCoreRowModel, getFilteredRowModel } from '@tanstack/react-table';
-import { getCaficultores } from '../services/api';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getCaficultores, deleteCaficultor } from '../services/api';
 
 const TablaCaficultores = () => {
-  const [data, setData] = useState([]);
-  const [filter, setFilter] = useState('');
+  const navigate = useNavigate();
+  const [caficultores, setCaficultores] = useState([]);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCaficultores = async () => {
       try {
-        const result = await getCaficultores();
-        setData(result);
-      } catch (error) {
-        console.error('Error fetching caficultores:', error);
+        const data = await getCaficultores();
+        setCaficultores(data);
+      } catch (err) {
+        setError(err.message || 'Error al cargar caficultores');
+      } finally {
+        setLoading(false);
       }
     };
-    fetchData();
+    fetchCaficultores();
   }, []);
 
-  const columns = useMemo(() => [
-    { header: 'ID', accessorKey: 'id' },
-    { header: 'Nombre', accessorKey: 'nombre' },
-    { header: 'Identificación', accessorKey: 'identificacion' },
-    { header: 'Ciudad', accessorKey: 'ciudad' },
-  ], []);
+  const handleDelete = async (id) => {
+    if (window.confirm('¿Estás seguro de eliminar este caficultor?')) {
+      try {
+        await deleteCaficultor(id);
+        setCaficultores(caficultores.filter((c) => c.id_caficultor !== id));
+        setError('');
+      } catch (err) {
+        setError(err.message || 'Error al eliminar caficultor');
+      }
+    }
+  };
 
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(), // Reemplazo de useFilters
-    state: {
-      globalFilter: filter, // Estado del filtro global
-    },
-    onGlobalFilterChange: setFilter, // Actualiza el filtro cuando cambia
-  });
+  const handleViewDetail = (id) => navigate(`/caficultores/${id}`);
+  const handleViewAbonos = (id) => navigate(`/abonos/${id}`);
+  const handleRegister = () => navigate('/registrar');
+
+  if (loading) return <p>Cargando...</p>;
+  if (error) return <p className="error">{error}</p>;
 
   return (
-    <div>
-      <input
-        value={filter}
-        onChange={(e) => setFilter(e.target.value)}
-        placeholder="Filtrar por nombre..."
-        style={{ marginBottom: '10px', padding: '5px', width: '200px' }}
-      />
-      <table {...table.getTableProps()} style={{ border: '1px solid black', width: '100%', borderCollapse: 'collapse' }}>
+    <div className="container">
+      <h2>Lista de Caficultores</h2>
+      <button onClick={handleRegister} className="primary">Registrar Nuevo Caficultor</button>
+      <table>
         <thead>
-          {table.getHeaderGroups().map(headerGroup => (
-            <tr key={headerGroup.id} style={{ borderBottom: '2px solid black' }}>
-              {headerGroup.headers.map(header => (
-                <th key={header.id} style={{ padding: '8px', border: '1px solid black', background: '#f0f0f0' }}>
-                  {header.column.columnDef.header}
-                </th>
-              ))}
-            </tr>
-          ))}
+          <tr>
+            <th data-label="ID">ID</th>
+            <th data-label="Nombre">Nombre</th>
+            <th data-label="Identificación">Identificación</th>
+            <th data-label="Ciudad">Ciudad</th>
+            <th data-label="Acciones">Acciones</th>
+          </tr>
         </thead>
         <tbody>
-          {table.getRowModel().rows.map(row => (
-            <tr key={row.id} style={{ borderBottom: '1px solid black' }}>
-              {row.getVisibleCells().map(cell => (
-                <td key={cell.id} style={{ padding: '8px', border: '1px solid black' }}>
-                  {cell.getValue()}
-                </td>
-              ))}
+          {caficultores.map((caficultor) => (
+            <tr key={caficultor.id_caficultor}>
+              <td data-label="ID">{caficultor.id_caficultor}</td>
+              <td data-label="Nombre">{caficultor.nombre}</td>
+              <td data-label="Identificación">{caficultor.identificacion}</td>
+              <td data-label="Ciudad">{caficultor.ciudad}</td>
+              <td data-label="Acciones">
+                <button onClick={() => handleViewDetail(caficultor.id_caficultor)} className="secondary">Ver Detalle</button> | 
+                <button onClick={() => handleViewAbonos(caficultor.id_caficultor)} className="secondary">Ver Abonos</button> | 
+                <button onClick={() => handleDelete(caficultor.id_caficultor)} className="danger">Eliminar</button>
+              </td>
             </tr>
           ))}
         </tbody>

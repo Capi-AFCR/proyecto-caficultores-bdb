@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { postAbono, getMonederos } from '../services/api';
+import { useNavigate, useParams } from 'react-router-dom';
+import { postAbono, putAbono, getAbonos, getMonederos } from '../services/api';
 
 const AbonoForm = () => {
+  const { id: idAbono } = useParams();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     id_producto: '',
     monto: '',
@@ -22,7 +25,34 @@ const AbonoForm = () => {
       }
     };
     fetchMonederos();
-  }, []);
+
+    if (idAbono) {
+      const fetchAbono = async () => {
+        try {
+          const data = await getAbonos(idAbono);
+          if (Array.isArray(data) && data.length > 0) {
+            const abono = data[0];
+            setFormData({
+              id_producto: abono.id_producto || '',
+              monto: abono.monto || '',
+              fecha_abono: abono.fecha_abono ? new Date(abono.fecha_abono * 1000).toISOString().split('T')[0] : '',
+              descripcion: abono.descripcion || ''
+            });
+          } else if (data && !Array.isArray(data)) {
+            setFormData({
+              id_producto: data.id_producto || '',
+              monto: data.monto || '',
+              fecha_abono: data.fecha_abono ? new Date(data.fecha_abono * 1000).toISOString().split('T')[0] : '',
+              descripcion: data.descripcion || ''
+            });
+          }
+        } catch (err) {
+          setError('Error al cargar abono: ' + err.message);
+        }
+      };
+      fetchAbono();
+    }
+  }, [idAbono]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -45,26 +75,31 @@ const AbonoForm = () => {
       return;
     }
     try {
-      await postAbono(formData);
-      setSuccess('Abono registrado con éxito');
+      if (idAbono) {
+        await putAbono(idAbono, formData);
+        setSuccess('Abono actualizado con éxito');
+      } else {
+        await postAbono(formData);
+        setSuccess('Abono registrado con éxito');
+      }
       setFormData({ id_producto: '', monto: '', fecha_abono: '', descripcion: '' });
+      setTimeout(() => navigate('/abonos/1'), 1000); // Ajusta el ID según necesites
     } catch (error) {
       setError(error);
     }
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '20px auto', padding: '20px', border: '1px solid #ccc' }}>
-      <h2>Registrar Abono</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {success && <p style={{ color: 'green' }}>{success}</p>}
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+    <div className="container">
+      <h2>{idAbono ? 'Editar Abono' : 'Registrar Abono'}</h2>
+      {error && <p className="error">{error}</p>}
+      {success && <p className="success">{success}</p>}
+      <form onSubmit={handleSubmit}>
         <select
           name="id_producto"
           value={formData.id_producto}
           onChange={handleChange}
           required
-          style={{ padding: '8px' }}
         >
           <option value="">Seleccione un monedero</option>
           {monederos.map((monedero) => (
@@ -79,25 +114,20 @@ const AbonoForm = () => {
           onChange={handleChange}
           placeholder="Monto"
           required
-          style={{ padding: '8px' }}
         />
         <input
           name="fecha_abono"
           value={formData.fecha_abono}
           onChange={handleChange}
           placeholder="Fecha Abono (YYYY-MM-DD)"
-          style={{ padding: '8px' }}
         />
         <input
           name="descripcion"
           value={formData.descripcion}
           onChange={handleChange}
           placeholder="Descripción"
-          style={{ padding: '8px' }}
         />
-        <button type="submit" style={{ padding: '10px', background: '#007bff', color: 'white', border: 'none' }}>
-          Registrar Abono
-        </button>
+        <button type="submit" className="primary">{idAbono ? 'Actualizar' : 'Registrar'} Abono</button>
       </form>
     </div>
   );
