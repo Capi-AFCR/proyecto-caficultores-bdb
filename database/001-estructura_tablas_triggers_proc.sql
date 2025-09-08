@@ -62,7 +62,7 @@ END;
 /
 
 -- Trigger para actualizar saldo del monedero al eliminar abono
-CREATE OR REPLACE TRIGGER trg_actualizar_saldo_ad
+CREATE OR REPLACE TRIGGER trg_actualizar_saldo_bd
 BEFORE DELETE ON abonos
 FOR EACH ROW
 BEGIN
@@ -121,7 +121,7 @@ CREATE OR REPLACE PROCEDURE consultar_productos (
 ) AS
 BEGIN
   OPEN p_cursor FOR
-    SELECT tipo_producto, numero_producto, saldo
+    SELECT id_producto, numero_producto, saldo
     FROM productos
     WHERE id_caficultor = p_id_caficultor;
 END;

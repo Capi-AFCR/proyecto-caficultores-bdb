@@ -107,7 +107,7 @@ const TablaAbonos = () => {
                 <td data-label="ID Abono">{abono.id_abono}</td>
                 <td data-label="ID Producto">{abono.id_producto}</td>
                 <td data-label="Monto">${abono.monto.toFixed(2)}</td>
-                <td data-label="Fecha">{new Date(abono.fecha_abono * 1000).toLocaleDateString()}</td>
+                <td data-label="Fecha">{abono.fecha_abono}</td>
                 <td data-label="Descripción">{abono.descripcion || 'Sin descripción'}</td>
                 <td data-label="Acciones">
                   <button onClick={() => handleEdit(abono.id_abono)} className="secondary">Editar</button> | 

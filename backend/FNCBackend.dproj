@@ -120,6 +120,7 @@
         <DCCReference Include="Caficultores.pas"/>
         <DCCReference Include="Abonos.pas"/>
         <DCCReference Include="Saldos.pas"/>
+        <DCCReference Include="Productos.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

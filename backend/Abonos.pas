@@ -98,7 +98,7 @@ var
   JSON: TJSONObject;
   IdProducto, IdAbono: Integer;
   Monto: Double;
-  FechaAbono: TDateTime;
+  //FechaAbono: TDateTime;
   Descripcion: string;
   NuevoSaldo: Double;
 begin
@@ -119,7 +119,7 @@ begin
     // Extraer valores del JSON
     IdProducto := JSON.GetValue<Integer>('id_producto', 0);
     Monto := JSON.GetValue<Double>('monto', 0.0);
-    FechaAbono := JSON.GetValue<TDateTime>('fecha_abono', Now);
+    //FechaAbono := JSON.GetValue<TDateTime>('fecha_abono', Now);
     Descripcion := JSON.GetValue<string>('descripcion', '');
 
     // Validaciones básicas

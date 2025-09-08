@@ -40,8 +40,10 @@ requires
 contains
   Caficultores in 'Caficultores.pas',
   Abonos in 'Abonos.pas',
-  Saldos in 'Saldos.pas';
+  Saldos in 'Saldos.pas',
+  Productos in 'Productos.pas';
 
 end.
+
 
 
